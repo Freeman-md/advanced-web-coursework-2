@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^18.14.2",
+    "aws-sdk": "^2.1323.0",
     "dotenv": "^16.0.3",
     "nodemon": "^2.0.20"
   }
