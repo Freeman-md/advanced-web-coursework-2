@@ -12,7 +12,7 @@ export default class AlphaVantageService {
 
   // get intraday time series of the forex data
   async getIntraDayDataSeries(
-    symbol: string = "EURUSD",
+    symbol: string,
     interval: string = "1min"
   ): Promise<AxiosResponse<any, any>> {
     const url: string = `${this.baseUrl}?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&apikey=${this.apiKey}`;
@@ -34,9 +34,9 @@ export default class AlphaVantageService {
     return await axios.get(url);
   }
 
-  async getForexData() {
+  async getForexData(symbol: string) {
     try {
-      const response = await this.getIntraDayDataSeries();
+      const response = await this.getIntraDayDataSeries(symbol);
 
       const metaData = await response.data["Meta Data"];
       const timeSeriesData = await response.data["Time Series (1min)"];

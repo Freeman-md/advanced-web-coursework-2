@@ -7,11 +7,17 @@ export default class AppController {
 
   async retrieveAndSaveData() {
     // retrieve data from API
-    const forexData = await this.alphaVantageService.getForexData();
+    const symbols = ['USDJPY', 'USDCAD', 'USDCHF', 'USDMXN', 'USDSGD']
+
+    const forexPrommiseArray = symbols.map((symbol) => {
+      return this.alphaVantageService.getForexData(symbol);
+    });
+
+    const forexData = await Promise.all(forexPrommiseArray);
     const newsData = await this.alphaVantageService.getNewsData();
 
     // save data gotten from API
-    this.saveForexData(forexData)
+    forexData.forEach(data => this.saveForexData(data))
     this.saveNewsData(newsData)
   }
 
