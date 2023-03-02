@@ -1,4 +1,3 @@
-export namespace Helpers {
   export class ObjectHelper {
     static removeSerialNumberFromKeys(data: object): object {
       const result = {};
@@ -26,9 +25,21 @@ export namespace Helpers {
       
         return result;
     }
+
+    static chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+      const chunks = [];
+      for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        chunks.push(chunk);
+      }
+      return chunks;
+    }
+
+    static toJSON(data: object) {
+      return JSON.parse(JSON.stringify(data))
+    }
   }
 
   export class StringHelper {}
 
   export class NumberHelper {}
-}

@@ -1,86 +1,94 @@
-namespace Models {
-  const moment = require("moment");
-  const AWS = require("../config/aws");
-  const { DocumentClient } = require("aws-sdk/clients/dynamodb");
+import moment from "moment";
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { dynamodb } from "../config/aws";
+import { ObjectHelper } from "../helpers";
 
-  export interface NewsDataType {
-    title: string;
-    url: string;
-    authors: Array<string>;
-    image: string;
-    source_domain: string;
-    topics: Array<string>;
-    summary: string;
-    time_published: typeof moment.Moment;
+export interface NewsDataType {
+  title: string;
+  url: string;
+  authors: Array<string>;
+  image: string;
+  source_domain: string;
+  topics: Array<string>;
+  summary: string;
+  timestamp: moment.Moment;
+}
+
+export class NewsData implements NewsDataType {
+  static readonly TABLE_NAME = "NewsData";
+
+  constructor(
+    public title: string,
+    public url: string,
+    public authors: Array<string>,
+    public image: string,
+    public source_domain: string,
+    public topics: Array<string>,
+    public summary: string,
+    public timestamp: moment.Moment
+  ) {}
+
+  toJSON() {
+    return {
+      title: this.title,
+      url: this.url,
+      authors: this.authors,
+      image: this.image,
+      source_domain: this.source_domain,
+      topics: this.topics,
+      summary: this.summary,
+      timestamp: this.timestamp,
+    };
   }
 
-  export class NewsData implements NewsDataType {
-    static readonly TABLE_NAME = "NewsData";
+  async save() {
+    const params: DocumentClient.PutItemInput = {
+      TableName: NewsData.TABLE_NAME,
+      Item: this.toJSON(),
+    };
 
-    constructor(
-      public title: string,
-      public url: string,
-      public authors: Array<string>,
-      public image: string,
-      public source_domain: string,
-      public topics: Array<string>,
-      public summary: string,
-      public time_published: typeof moment.Moment
-    ) {}
-
-    async save() {
-      const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
-      const params: typeof DocumentClient.PutItemInput = {
-        TableName: NewsData.TABLE_NAME,
-        Item: {
-          title: this.title,
-          url: this.url,
-          authors: this.authors,
-          image: this.image,
-          source_domain: this.source_domain,
-          topics: this.topics,
-          summary: this.summary,
-          time_published: this.time_published,
-        },
-      };
-
-      try {
-        await dynamoDB.put(params).promise();
-        console.log("NewsData saved to DynamoDB successfully.");
-      } catch (err) {
-        console.error("Unable to save NewsData to DynamoDB:", err);
-      }
+    try {
+      await dynamodb.put(params).promise();
+      console.log("NewsData saved to DynamoDB successfully.");
+    } catch (err) {
+      console.error("Unable to save NewsData to DynamoDB:", err);
     }
+  }
 
-    static async saveMany(data: NewsData[]) {
-      const dynamoDB = new AWS.DynamoDB.DocumentClient();
+  static async saveMany(data: NewsData[]) {
+    const batches = ObjectHelper.chunkArray(data, 20);
 
-      const params: typeof DocumentClient.BatchWriteItemInput = {
-        RequestItems: {
-          [NewsData.TABLE_NAME]: data.map((item) => ({
-            PutRequest: {
-              Item: {
-                title: item.title,
-                url: item.url,
-                authors: item.authors,
-                image: item.image,
-                source_domain: item.source_domain,
-                topics: item.topics,
-                summary: item.summary,
-                time_published: item.time_published,
+    try {
+      for (const batch of batches) {
+        const params: DocumentClient.BatchWriteItemInput = {
+          RequestItems: {
+            [NewsData.TABLE_NAME]: batch.map((item) => ({
+              PutRequest: {
+                Item: ObjectHelper.toJSON(item),
               },
-            },
-          })),
-        },
-      };
+            })),
+          },
+        };
 
-      try {
-        await dynamoDB.batchWrite(params).promise();
+        await dynamodb.batchWrite(params).promise();
+
         console.log("NewsData saved to DynamoDB successfully.");
-      } catch (err) {
-        console.error("Unable to save NewsData to DynamoDB:", err);
       }
+    } catch (err) {
+      console.error("Unable to save NewsData to DynamoDB:", err);
     }
+  }
+
+  static fromJSON(json: any): NewsData {
+    return new NewsData(
+      json.title,
+      json.url,
+      json.authors,
+      json.image,
+      json.source_domain,
+      json.topics,
+      json.summary,
+      json.timestamp
+    );
   }
 }

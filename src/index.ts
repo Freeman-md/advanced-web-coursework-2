@@ -1,7 +1,9 @@
-const { Services } = require('./services/alpha-vantage-service')
+import AppController from './controllers/app-controller'
 
-// get forex data
-const alphaVantageService = new Services.AlphaVantageService()
+try {
+    const appController = new AppController()
 
-// alphaVantageService.getForexData()
-alphaVantageService.getNewsData()
+    // appController.retrieveAndSaveData()
+} catch (error) {
+    console.log(`[App Controller] An error has occured: ${error}`);
+}

@@ -1,82 +1,90 @@
-namespace Models {
-  const AWS = require("../config/aws");
-  const { DocumentClient } = require("aws-sdk/clients/dynamodb");
+import moment from 'moment';
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { dynamodb } from "../config/aws";
+import { ObjectHelper } from '../helpers';
 
-  export interface ForexDataType {
-    symbol: string;
-    timestamp: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
+export interface ForexDataType {
+  symbol: string;
+  timestamp: moment.Moment;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export class ForexData implements ForexDataType {
+  static readonly TABLE_NAME = "ForexData";
+
+  constructor(
+    public symbol: string,
+    public timestamp: moment.Moment,
+    public open: number,
+    public high: number,
+    public low: number,
+    public close: number,
+    public volume: number
+  ) {}
+
+  toJSON() {
+    return {
+      symbol: this.symbol,
+      timestamp: this.timestamp,
+      open: this.open,
+      high: this.high,
+      low: this.low,
+      close: this.close,
+      volume: this.volume,
+    };
   }
 
-  export class ForexData implements ForexDataType {
-    static readonly TABLE_NAME = "ForexData";
+  async save() {
+    const params: DocumentClient.PutItemInput = {
+      TableName: ForexData.TABLE_NAME,
+      Item: this.toJSON(),
+    };
 
-    constructor(
-      public symbol: string,
-      public timestamp: string,
-      public open: number,
-      public high: number,
-      public low: number,
-      public close: number,
-      public volume: number
-    ) {
+    try {
+      await dynamodb.put(params).promise();
+      console.log("ForexData saved to DynamoDB successfully.");
+    } catch (err) {
+      console.error("Unable to save ForexData to DynamoDB:", err);
     }
+  }
 
-    async save() {
-      const dynamoDB = new AWS.DynamoDB.DocumentClient();
+  static async saveMany(data: ForexData[]) {
+    const batches = ObjectHelper.chunkArray(data, 20);
 
-      const params: typeof DocumentClient.PutItemInput = {
-        TableName: ForexData.TABLE_NAME,
-        Item: {
-          symbol: this.symbol,
-          timestamp: this.timestamp,
-          open: this.open,
-          high: this.high,
-          low: this.low,
-          close: this.close,
-          volume: this.volume,
-        },
-      };
-
-      try {
-        await dynamoDB.put(params).promise();
-        console.log("ForexData saved to DynamoDB successfully.");
-      } catch (err) {
-        console.error("Unable to save ForexData to DynamoDB:", err);
-      }
-    }
-
-    static async saveMany(data: ForexData[]) {
-      const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
-      const params: typeof DocumentClient.BatchWriteItemInput = {
-        RequestItems: {
-          [ForexData.TABLE_NAME]: data.map((item) => ({
-            PutRequest: {
-              Item: {
-                symbol: item.symbol,
-                timestamp: item.timestamp,
-                open: item.open,
-                high: item.high,
-                low: item.low,
-                close: item.close,
-                volume: item.volume,
+    try {
+      for (const batch of batches) {
+        const params: DocumentClient.BatchWriteItemInput = {
+          RequestItems: {
+            [ForexData.TABLE_NAME]: batch.map((item) => ({
+              PutRequest: {
+                Item: ObjectHelper.toJSON(item),
               },
-            },
-          })),
-        },
-      };
+            })),
+          },
+        };
+  
+        await dynamodb.batchWrite(params).promise();
 
-      try {
-        await dynamoDB.batchWrite(params).promise();
         console.log("ForexData saved to DynamoDB successfully.");
-      } catch (err) {
-        console.error("Unable to save ForexData to DynamoDB:", err);
       }
+    } catch (err) {
+      console.error("Unable to save ForexData to DynamoDB:", err);
     }
   }
+
+  static fromJSON(json: any): ForexData {
+    return new ForexData(
+      json.symbol,
+      json.timestamp,
+      json.open,
+      json.high,
+      json.low,
+      json.close,
+      json.volume
+    );
+    }
 }
