@@ -5,6 +5,7 @@ export namespace Services {
   const { AxiosResponse } = require("axios");
 
   const { Helpers } = require("../helpers");
+  const { Models } = require('./../models/forex-data');
 
   dotenv.config();
 
@@ -36,7 +37,7 @@ export namespace Services {
       return axios.get(url);
     }
 
-    async getForexData(): ForexData {
+    async getForexData() {
       try {
         const response = await this.getIntraDayDataSeries();
 
