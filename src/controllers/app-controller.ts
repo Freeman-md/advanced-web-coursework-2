@@ -5,19 +5,27 @@ import { NewsData } from "./../models/news-data";
 export default class AppController {
   alphaVantageService = new AlphaVantageService();
 
-  async retrieveAndSaveData() {
-    // retrieve data from API
+  async retrieveAndSaveForexData() {
+    // symbols to get rates for
     const symbols = ['USDJPY', 'USDCAD', 'USDCHF', 'USDMXN', 'USDSGD']
 
+    // create promise array to make concurrent requests
     const forexPrommiseArray = symbols.map((symbol) => {
       return this.alphaVantageService.getForexData(symbol);
     });
 
+    // retrieve data from API
     const forexData = await Promise.all(forexPrommiseArray);
+
+    // save data from API
+    forexData.forEach(data => this.saveForexData(data))
+  }
+
+  async retrieveAndSaveNewsData() {
+    // retrieve data from API
     const newsData = await this.alphaVantageService.getNewsData();
 
     // save data gotten from API
-    forexData.forEach(data => this.saveForexData(data))
     this.saveNewsData(newsData)
   }
 

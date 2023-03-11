@@ -22,6 +22,7 @@ export default class AlphaVantageService {
     return await axios.get(url);
   }
 
+  // get market sentiment data
   async getMarketSentiments(
     category: string = "NEWS_SENTIMENT",
     tickers: string = "COIN,CRYPTO:BTC,FOREX:USD",
