@@ -30,11 +30,28 @@
         // add handler for the close event
         connection.addEventListener('close', function (event) {
             console.log('WebSocket connection closed');
+
+            // The WebSocket connection has been closed, it is safe to close the tab
+            window.close()
         });
 
         // add handler for the error event
         connection.addEventListener('error', function (event) {
             console.error('WebSocket error:', event);
+        });
+
+        // Add an event listener for the beforeunload event
+        window.addEventListener('beforeunload', function (event) {
+            // Prompt the user to confirm the close
+            event.preventDefault();
+            event.returnValue = '';
+            // Close the WebSocket connection and wait for it to close before closing the tab
+            if (connection.readyState === WebSocket.OPEN) {
+                connection.close();
+
+                // Return false to prevent the browser from closing the tab immediately
+                return false;
+            }
         });
     </script>
 </body>
