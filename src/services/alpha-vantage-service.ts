@@ -28,7 +28,7 @@ export default class AlphaVantageService {
     tickers: string = "COIN,CRYPTO:BTC,FOREX:USD",
     topics: string = "blockchain,technology,finance"
   ): Promise<AxiosResponse<any, any>> {
-    const url: string = `${this.baseUrl}?function=${category}&tickers=${tickers}&topics=${topics}&apikey=${this.apiKey}`;
+    const url: string = `${this.baseUrl}?function=${category}&tickers=${tickers}&apikey=${this.apiKey}`;
 
     console.log("[Alpha Vantage] GET Market Sentiments: " + url);
 
