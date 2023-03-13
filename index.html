@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forexify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <h1>News Sentiment Data gotten from AWS</h1>
+    <div id="news"></div>
+
+    <script>
+        // establish connection
+        const connection = new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod/')
+
+        // add handler for the open event
+        connection.addEventListener('open', function (event) {
+            console.log('WebSocket connection opened');
+        });
+
+        // add handler for the message event
+        connection.addEventListener('message', function (event) {
+            console.log('WebSocket message received:', event.data);
+        });
+
+        // add handler for the close event
+        connection.addEventListener('close', function (event) {
+            console.log('WebSocket connection closed');
+        });
+
+        // add handler for the error event
+        connection.addEventListener('error', function (event) {
+            console.error('WebSocket error:', event);
+        });
+    </script>
+</body>
+
+</html>
