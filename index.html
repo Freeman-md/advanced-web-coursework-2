@@ -5,26 +5,72 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forexify</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Forexify</title>    
 </head>
 
-<body>
-    <h1>News Sentiment Data gotten from AWS</h1>
-    <div id="news"></div>
+<body class="container py-6">
+    <h1 class="text-2xl font-bold text-center mb-4">News Sentiment Data</h1>
+    <div id="news" class="w-full max-w-screen-xl mx-auto grid grid-cols-3 gap-4 items-stretch"></div>
 
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // establish connection
         const connection = new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod/')
+        const newsSentiment = []
+
+        const getLatestNewsSentimentData = () => {
+            const message = {
+                action: 'getNewsSentiment'
+            };
+
+            connection.send(JSON.stringify(message))
+        }
 
         // add handler for the open event
         connection.addEventListener('open', function (event) {
             console.log('WebSocket connection opened');
+
+            // request latest news sentiment data
+            getLatestNewsSentimentData()
         });
 
         // add handler for the message event
         connection.addEventListener('message', function (event) {
-            console.log('WebSocket message received:', event.data);
+            console.log('WebSocket message received');
+
+            const data = JSON.parse(event.data)
+
+            // Loop through data and append each item to the #news div
+            data.forEach((item) => {
+                const sentimentDiv = document.createElement('div');
+                sentimentDiv.innerHTML = `
+                <div class="bg-white rounded-lg overflow-hidden shadow-lg border border-gray-400">
+                    <img class="h-60 w-full object-cover object-center" src="${item.image}" alt="Article Image">
+                    <div class="p-6">
+                      <h2 class="text-lg font-bold mb-2"><a class="hover:underline" href="${item.url}" target="_blank">${item.title}</a></h2>
+                      <p class="text-gray-700 text-sm">${item.summary}</p>
+                    </div>
+                    <div class="px-6 pb-4">
+                      By: <ul class="flex flex-wrap">
+                        ${item.authors.map(author => `
+                          <li class="mr-2 mb-2 text-sm font-semibold text-gray-600">${author}</li>
+                        `).join('')}
+                      </ul>
+                      <div class="flex flex-col space-y-4 mt-4">
+                        <div>
+                          <div class="inline-block bg-gray-200 rounded-full py-1 text-sm text-gray-700 mr-2 mb-2">Sentiment: <span class="font-semibold">${item.sentiment}</span></div>
+                          <div class="text-gray-700 text-sm">${item.topics.join(', ')}</div>
+                        </div>
+                        <div>
+                          <span class="inline-block bg-green-200 rounded-full px-3 py-1 text-sm font-semibold text-green-700 mr-2 mb-2">Positive: ${item.positive}</span>
+                          <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">Neutral: ${item.neutral}</span>
+                          <span class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold text-red-700 mr-2 mb-2">Negative: ${item.negative}</span>
+                        </div>
+                    </div>
+                    </div>
+                </div>`;
+                document.getElementById('news').appendChild(sentimentDiv);
+            });
         });
 
         // add handler for the close event
@@ -45,6 +91,7 @@
             // Prompt the user to confirm the close
             event.preventDefault();
             event.returnValue = '';
+
             // Close the WebSocket connection and wait for it to close before closing the tab
             if (connection.readyState === WebSocket.OPEN) {
                 connection.close();
