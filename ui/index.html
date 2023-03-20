@@ -5,23 +5,49 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <title>Forexify</title>
 </head>
 
-<body class="container py-6">
-    <h1 class="text-2xl font-bold text-center mb-4 text-primary">News Sentiment Data</h1>
-    <div id="news" class="w-full max-w-screen-xl mx-auto grid grid-cols-3 gap-4 items-stretch"></div>
+<body >
+    <header class="bg-white shadow">
+        <div class="container mx-auto flex items-center justify-center h-16">
+          <h1 class="text-primary text-3xl font-semibold">Forexify</h1>
+        </div>
+      </header>
+
+      <div id="chart" class="container">
+
+      </div>
+      
+    <div id="news" class="container grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
+                container: {
+                    center: true,
+                    padding: {
+                      DEFAULT: '0.25rem',
+                      sm: '0.5rem',
+                      md: '0.75rem',
+                      lg: '1.25rem',
+                      xl: '1.5rem',
+                      '2xl': '1.75rem',
+                    },
+                  },
                 extend: {
                     colors: {
                         primary: '#1A5276',
                         secondary: '#F7DC6F',
                         accent: '#E74C3C'
-                    }
+                    },
+                    fontFamily: {
+                        'sans': ['Oswald'],
+                      },
                 }
             }
         }
@@ -62,7 +88,7 @@
             data.forEach((item) => {
                 const sentimentDiv = document.createElement('div');
                 sentimentDiv.innerHTML = `
-                <div class="bg-white rounded-lg overflow-hidden shadow-lg border border-gray-400">
+                <div class="bg-white rounded-lg overflow-hidden shadow-lg border border-gray-400 h-full">
                     <img class="h-60 w-full object-cover object-center" src="${item.image}" alt="Article Image">
                     <div class="p-6">
                       <h2 class="text-lg font-bold mb-2"><a class="hover:underline" href="${item.url}" target="_blank">${item.title}</a></h2>
