@@ -10,23 +10,30 @@ export default class AppController {
     const symbols = ['USDJPY', 'USDCAD', 'USDCHF', 'USDMXN', 'USDSGD']
 
     // create promise array to make concurrent requests
-    const forexPrommiseArray = symbols.map((symbol) => {
+    const forexPromiseArray = symbols.map((symbol) => {
       return this.alphaVantageService.getForexData(symbol);
     });
 
     // retrieve data from API
-    const forexData = await Promise.all(forexPrommiseArray);
+    const forexData = await Promise.all(forexPromiseArray);
 
     // save data from API
     forexData.forEach(data => this.saveForexData(data))
   }
 
   async retrieveAndSaveNewsData() {
-    // retrieve data from API
-    const newsData = await this.alphaVantageService.getNewsData();
+    // cryptos to get news data for
+    const cryptos: Array<string> = ['BTC', 'ETH', 'BNB', 'ADA', 'XRP']
 
-    // save data gotten from API
-    this.saveNewsData(newsData)
+    const newsPromiseArray = cryptos.map((crypto) => {
+      return this.alphaVantageService.getNewsData(crypto)
+    })
+
+    // retrieve data from API
+    const newsData = await Promise.all(newsPromiseArray);
+
+    // save data from API
+    newsData.forEach(data => this.saveNewsData(data))
   }
 
   async saveForexData(forexData) {

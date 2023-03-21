@@ -4,7 +4,8 @@ import { dynamodb } from "../config/aws";
 import { ObjectHelper } from "../helpers";
 
 export interface NewsDataType {
-  title: string;
+  title: string,
+  symbol: string;
   url: string;
   authors: Array<string>;
   image: string;
@@ -19,6 +20,7 @@ export class NewsData implements NewsDataType {
 
   constructor(
     public title: string,
+    public symbol: string,
     public url: string,
     public authors: Array<string>,
     public image: string,
@@ -31,6 +33,7 @@ export class NewsData implements NewsDataType {
   toJSON() {
     return {
       title: this.title,
+      symbol: this.symbol,
       url: this.url,
       authors: this.authors,
       image: this.image,
@@ -82,6 +85,7 @@ export class NewsData implements NewsDataType {
   static fromJSON(json: any): NewsData {
     return new NewsData(
       json.title,
+      json.symbol,
       json.url,
       json.authors,
       json.image,

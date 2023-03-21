@@ -24,11 +24,11 @@ export default class AlphaVantageService {
 
   // get market sentiment data
   async getMarketSentiments(
-    category: string = "NEWS_SENTIMENT",
+    symbol: string = "BTC",
     tickers: string = "COIN,CRYPTO:BTC,FOREX:USD",
     topics: string = "blockchain,technology,finance"
   ): Promise<AxiosResponse<any, any>> {
-    const url: string = `${this.baseUrl}?function=${category}&tickers=${tickers}&apikey=${this.apiKey}`;
+    const url: string = `${this.baseUrl}?function=NEWS_SENTIMENT&tickers=CRYPTO:${symbol}&apikey=${this.apiKey}`;
 
     console.log("[Alpha Vantage] GET Market Sentiments: " + url);
 
@@ -61,16 +61,17 @@ export default class AlphaVantageService {
         symbol: meta["Symbol"],
       }));
     } catch (error) {
-      console.log(`[Alpha Vantage - ForexData] An error has occured: ${error}`);
+      console.log(`[Alpha Vantage - ForexData] An error has occurred: ${error}`);
     }
   }
 
-  async getNewsData() {
+  async getNewsData(crypto: string) {
     try {
-      const response = await this.getMarketSentiments();
+      const response = await this.getMarketSentiments(crypto);
 
       return await response.data.feed?.map((item) => ({
         title: item.title,
+        symbol: crypto,
         url: item.url,
         authors: item.authors,
         image: item.banner_image,
@@ -80,7 +81,7 @@ export default class AlphaVantageService {
         timestamp: moment(item.timestamp).unix(),
       }));
     } catch (error) {
-      console.log(`[Alpha Vantage - NewsData] An error has occured: ${error}`);
+      console.log(`[Alpha Vantage - NewsData] An error has occurred: ${error}`);
     }
   }
 }
