@@ -28,7 +28,7 @@ export default class AlphaVantageService {
     tickers: string = "COIN,CRYPTO:BTC,FOREX:USD",
     topics: string = "blockchain,technology,finance"
   ): Promise<AxiosResponse<any, any>> {
-    const url: string = `${this.baseUrl}?function=NEWS_SENTIMENT&tickers=CRYPTO:${symbol}&apikey=${this.apiKey}`;
+    const url: string = `${this.baseUrl}?function=NEWS_SENTIMENT&time_from=20230301T0000&time_to=20230323T0000&limit=100&tickers=FOREX:${symbol}&apikey=${this.apiKey}`;
 
     console.log("[Alpha Vantage] GET Market Sentiments: " + url);
 
@@ -78,7 +78,7 @@ export default class AlphaVantageService {
         source_domain: item.source_domain,
         topics: item.topics.map((topic) => topic.topic),
         summary: item.summary,
-        timestamp: moment(item.timestamp).unix(),
+        timestamp: moment(item.time_published).unix(),
       }));
     } catch (error) {
       console.log(`[Alpha Vantage - NewsData] An error has occurred: ${error}`);

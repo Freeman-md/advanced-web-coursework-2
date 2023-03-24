@@ -23,7 +23,7 @@ export default class AppController {
 
   async retrieveAndSaveNewsData() {
     // cryptos to get news data for
-    const cryptos: Array<string> = ['BTC', 'ETH', 'BNB', 'ADA', 'XRP']
+    const cryptos: Array<string> = ['USD', 'CAD', 'CNY', 'GBP', 'EUR']
 
     const newsPromiseArray = cryptos.map((crypto) => {
       return this.alphaVantageService.getNewsData(crypto)
@@ -36,11 +36,13 @@ export default class AppController {
     newsData.forEach(data => this.saveNewsData(data))
   }
 
-  async saveForexData(forexData) {
+  async saveForexData(forexData: Array<ForexData>) {
     forexData?.map((data) => ForexData.fromJSON(data).save());
   }
 
-  async saveNewsData(newsData) {
+  async saveNewsData(newsData: Array<NewsData>) {
+    newsData = newsData.splice(-20)
+
     newsData?.map((data) => NewsData.fromJSON(data).save());
   }
 }

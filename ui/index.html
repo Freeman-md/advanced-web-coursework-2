@@ -2,149 +2,221 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>Forexify</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <title>Forexify</title>
 </head>
 
-<body >
-    <header class="bg-white shadow">
-        <div class="container mx-auto flex items-center justify-center h-16">
-          <h1 class="text-primary text-3xl font-semibold">Forexify</h1>
-        </div>
-      </header>
+<body id="app">
+  <header class="bg-white shadow">
+    <div class="container mx-auto flex items-center justify-center h-16">
+      <!-- <h1 class="text-primary text-3xl font-semibold">Forexify</h1> -->
 
-      <div id="chart" class="container">
+      <img src="/ui/images/logo.svg" alt="Forexify" class="w-40">
+    </div>
+  </header>
 
+  <section id="charts" class="grid grid-cols-2 gap-6">
+    <div>
+      <div class="container" v-if="newsSentiment.length <= 0">
+        <canvas id="news-sentiment-chart" class="w-full" width="400" height="400"></canvas>
       </div>
-      
-    <div id="news" class="container grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                container: {
-                    center: true,
-                    padding: {
-                      DEFAULT: '0.25rem',
-                      sm: '0.5rem',
-                      md: '0.75rem',
-                      lg: '1.25rem',
-                      xl: '1.5rem',
-                      '2xl': '1.75rem',
-                    },
-                  },
-                extend: {
-                    colors: {
-                        primary: '#1A5276',
-                        secondary: '#F7DC6F',
-                        accent: '#E74C3C'
-                    },
-                    fontFamily: {
-                        'sans': ['Oswald'],
-                      },
-                }
-            }
+      <div v-else class="w-full flex items-center justify-center">
+        <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        container: {
+          center: true,
+          padding: {
+            DEFAULT: '0.25rem',
+            sm: '0.5rem',
+            md: '0.75rem',
+            lg: '1.25rem',
+            xl: '1.5rem',
+            '2xl': '1.75rem',
+          },
+        },
+        extend: {
+          colors: {
+            primary: '#1A5276',
+            secondary: '#F7DC6F',
+            accent: '#E74C3C'
+          },
+          fontFamily: {
+            'sans': ['Oswald'],
+          },
         }
-    </script>
+      }
+    }
+  </script>
+  <!-- Moment JS CDN -->
+  <script src="
+https://cdn.jsdelivr.net/npm/moment/moment.min.js
+"></script>
+  <!-- ChartJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Vue.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+  <!-- Custom Scripts -->
+  <script>
+    new Vue({
+      el: "#app",
+      data: () => ({
+        connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'),
+        newsSentiment: []
+      }),
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
-
-    <script>
-        // establish connection
-        const connection = new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod/')
-        const newsSentiment = []
-
-        const getLatestNewsSentimentData = () => {
-            const message = {
-                action: 'getNewsSentiment'
-            };
-
-            connection.send(JSON.stringify(message))
-        }
-
+      created() {
         // add handler for the open event
-        connection.addEventListener('open', function (event) {
-            console.log('WebSocket connection opened');
+        this.connection.addEventListener('open', (event) => {
+          console.log('WebSocket connection opened');
 
-            // request latest news sentiment data
-            getLatestNewsSentimentData()
+          // request latest news sentiment data
+          const message = {
+            action: 'getNewsSentiment'
+          };
+
+          this.connection.send(JSON.stringify(message))
+
+          console.log('Getting latest data')
         });
 
         // add handler for the message event
-        connection.addEventListener('message', function (event) {
-            console.log('WebSocket message received');
+        this.connection.addEventListener('message', (event) => {
+          console.log('WebSocket message received');
 
-            const data = JSON.parse(event.data)
+          const data = JSON.parse(event.data)
 
-            console.log(data)
+          this.newsSentiment = new Set([...this.newsSentiment, ...data])
 
-            // Loop through data and append each item to the #news div
-            data.forEach((item) => {
-                const sentimentDiv = document.createElement('div');
-                sentimentDiv.innerHTML = `
-                <div class="bg-white rounded-lg overflow-hidden shadow-lg border border-gray-400 h-full">
-                    <img class="h-60 w-full object-cover object-center" src="${item.image}" alt="${item.symbol}">
-                    <div class="p-6">
-                      <h2 class="text-lg font-bold mb-2"><a class="hover:underline" href="${item.url}" target="_blank">${item.symbol}</a></h2>
-                      <p class="text-gray-700 text-sm">${item.summary}</p>
-                    </div>
-                    <div class="px-6 pb-4">
-                      By: <ul class="flex flex-wrap">
-                        ${item.authors.map(author => `
-                          <li class="mr-2 mb-2 text-sm font-semibold text-gray-600">${author}</li>
-                        `).join('') || 'N/A'}
-                      </ul>
-                      <div class="flex flex-col space-y-4 mt-4">
-                        <div>
-                          <div class="inline-block bg-gray-200 rounded-full p-1 text-sm text-gray-700 mr-2 mb-2">Sentiment: <span class="font-semibold">${item.sentiment}</span></div>
-                          <div class="text-gray-700 text-sm">${item.topics.join(', ')}</div>
-                        </div>
-                        <div>
-                          <span class="inline-block bg-green-200 rounded-full px-3 py-1 text-sm font-semibold text-green-700 mr-2 mb-2">Positive: ${item.positive}</span>
-                          <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">Neutral: ${item.neutral}</span>
-                          <span class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold text-red-700 mr-2 mb-2">Negative: ${item.negative}</span>
-                        </div>
-                    </div>
-                    </div>
-                </div>`;
-                document.getElementById('news').appendChild(sentimentDiv);
-            });
+          this.renderNewsSentimentChart()
         });
 
         // add handler for the close event
-        connection.addEventListener('close', function (event) {
-            console.log('WebSocket connection closed');
+        this.connection.addEventListener('close', (event) => {
+          console.log('WebSocket connection closed');
 
-            // The WebSocket connection has been closed, it is safe to close the tab
-            window.close()
+          // The WebSocket connection has been closed, it is safe to close the tab
+          window.close()
         });
 
         // add handler for the error event
-        connection.addEventListener('error', function (event) {
-            console.error('WebSocket error:', event);
+        this.connection.addEventListener('error', (event) => {
+          console.error('WebSocket error:', event);
         });
 
         // Add an event listener for the beforeunload event
-        window.addEventListener('beforeunload', function (event) {
-            // Prompt the user to confirm the close
-            event.preventDefault();
-            event.returnValue = '';
+        /* window.addEventListener('beforeunload', (event) => {
+          // Prompt the user to confirm the close
+          event.preventDefault();
+          event.returnValue = '';
 
-            // Close the WebSocket connection and wait for it to close before closing the tab
-            if (connection.readyState === WebSocket.OPEN) {
-                connection.close();
+          // Close the WebSocket connection and wait for it to close before closing the tab
+          if (this.connection.readyState === WebSocket.OPEN) {
+            this.connection.close();
 
-                // Return false to prevent the browser from closing the tab immediately
-                return false;
+            // Return false to prevent the browser from closing the tab immediately
+            return false;
+          }
+        }); **/
+      },
+
+
+      methods: {
+        async renderNewsSentimentChart() {
+          const ctx = document.getElementById('news-sentiment-chart')
+
+          const timestamps = []
+          const datasets = [];
+          const data = []
+
+          await this.newsSentiment.forEach((item) => {
+            const date = moment.unix(item.timestamp).format("MM/DD/YYYY")
+            const dateIndex = timestamps.indexOf(date)
+
+            let dataset
+
+            // checks if timestamp/date already exist in timestamps
+            if (!timestamps.includes(date)) {
+              timestamps.push(date)
             }
-        });
-    </script>
+
+            // checks if a dataset exists for a symbol [ETH, BTC, ADA, XRP, BNB]
+            dataset = datasets.find(dataset => dataset.label === item.symbol)
+
+            // create new dataset for symbol if it doesn't exist
+            if (!dataset) {
+              dataset = {
+                label: item.symbol,
+                backgroundColor: item.symbol === 'CAD' ? 'rgb(255, 0, 0)' :
+                  item.symbol === 'USD' ? 'rgb(0, 255, 0)' :
+                    item.symbol === 'GBP' ? 'rgb(0, 0, 255)' :
+                      item.symbol === 'EUR' ? 'rgb(255, 255, 0)' :
+                        item.symbol === 'CNY' ? 'rgb(255, 0, 255)' :
+                          'rgb(128, 128, 128)',
+                data: []
+              }
+            }
+
+            // add sentiment data based on sentiment to symbols dataset
+            switch (item.sentiment) {
+              case 'NEUTRAL':
+                dataset['data'][dateIndex] = item.neutral
+                break
+              case 'POSITIVE':
+                dataset['data'][dateIndex] = item.positive
+                break
+              case 'NEGATIVE':
+                dataset['data'][dateIndex] = item.negative
+                break
+              default:
+                break
+            }
+
+            datasets.push(dataset)
+          })
+
+          const uniqueDatasets = new Set(datasets)
+
+          uniqueDatasets.forEach(dataset => data.push(dataset))
+
+          // sort timestamps in ascending order
+          timestamps.sort((a, b) => new Date(a) - new Date(b));
+
+          // plot data on chart
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: timestamps,
+              datasets: data,
+            },
+            options: {
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'News Sentiment Analysis Results'
+                }
+              },
+
+            }
+          })
+        }
+      }
+    })
+  </script>
 </body>
 
 </html>

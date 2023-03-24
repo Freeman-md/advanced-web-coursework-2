@@ -1,10 +1,10 @@
 import AppController from './controllers/app-controller'
 
 try {
-    const appController = new AppController()
+    const appController: AppController = new AppController()
 
     // appController.retrieveAndSaveForexData()
-    // appController.retrieveAndSaveNewsData()
+    appController.retrieveAndSaveNewsData()
 } catch (error) {
     console.log(`[App Controller] An error has occurred: ${error}`);
 }
