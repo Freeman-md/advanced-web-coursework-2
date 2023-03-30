@@ -15,22 +15,36 @@
 <body id="app">
   <header class="bg-white shadow">
     <div class="container mx-auto flex items-center justify-center h-16">
-      <!-- <h1 class="text-primary text-3xl font-semibold">Forexify</h1> -->
-
       <img src="/ui/images/logo.svg" alt="Forexify" class="w-40">
     </div>
   </header>
 
   <section id="charts" class="grid grid-cols-2 gap-6">
     <div>
-      <div class="container" v-if="newsSentiment.length <= 0">
-        <canvas id="news-sentiment-chart" class="w-full" width="400" height="400"></canvas>
+      <div class="container">
+        <canvas id="news-sentiment-chart" class="w-full" height="400" width="full"></canvas>
       </div>
 
-      <div v-else class="w-full flex items-center justify-center">
+      <!-- <div v-else class="w-full flex items-center justify-center">
         <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
-      </div>
+      </div> -->
     </div>
+
+    <div>
+      <div class="container">
+        <canvas id="forex-data-chart" class="w-full" height="400" width="full"></canvas>
+      </div>
+
+      <!-- <div v-else class="w-full flex items-center justify-center">
+        <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
+      </div> -->
+    </div>
+  </section>
+
+  <section class="container overflow-hidden space-y-6 flex flex-col items-center justify-center">
+    <h3 class="text-3xl text-primary font-semibold">Forex Data</h3>
+
+    <div id="forex-charts-section" class="grid grid-cols-2 gap-6"></div>
   </section>
 
   <!-- TailwindCSS CDN -->
@@ -64,8 +78,8 @@
   </script>
   <!-- Moment JS CDN -->
   <script src="
-https://cdn.jsdelivr.net/npm/moment/moment.min.js
-"></script>
+  https://cdn.jsdelivr.net/npm/moment/moment.min.js
+  "></script>
   <!-- ChartJS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Vue.js CDN -->
@@ -76,20 +90,24 @@ https://cdn.jsdelivr.net/npm/moment/moment.min.js
       el: "#app",
       data: () => ({
         connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'),
+        forexData: [],
         newsSentiment: []
       }),
 
-      created() {
+      async created() {
         // add handler for the open event
         this.connection.addEventListener('open', (event) => {
           console.log('WebSocket connection opened');
 
           // request latest news sentiment data
-          const message = {
+          this.connection.send(JSON.stringify({
             action: 'getNewsSentiment'
-          };
+          }))
 
-          this.connection.send(JSON.stringify(message))
+          // request latest numerical / forex data
+          this.connection.send(JSON.stringify({
+            action: 'getForexData'
+          }))
 
           console.log('Getting latest data')
         });
@@ -100,9 +118,20 @@ https://cdn.jsdelivr.net/npm/moment/moment.min.js
 
           const data = JSON.parse(event.data)
 
-          this.newsSentiment = new Set([...this.newsSentiment, ...data])
+          switch (data.type) {
+            case 'ForexData':
+              this.forexData = new Set([...this.forexData, ...data.message])
 
-          this.renderNewsSentimentChart()
+              this.renderForexDataChart()
+              break
+            case 'NewsSentimentData':
+              this.newsSentiment = new Set([...this.newsSentiment, ...data.message])
+
+              this.renderNewsSentimentChart()
+              break
+            default:
+              break
+          }
         });
 
         // add handler for the close event
@@ -132,30 +161,114 @@ https://cdn.jsdelivr.net/npm/moment/moment.min.js
             return false;
           }
         }); **/
+
+        // get numerical data
       },
 
 
       methods: {
-        async renderNewsSentimentChart() {
-          const ctx = document.getElementById('news-sentiment-chart')
+        // render chart for forex / numerical data
+        renderForexDataChart() {
+          // get parent element to add forex charts to
+          let parentElem = document.getElementById('forex-charts-section')
 
           const timestamps = []
           const datasets = [];
           const data = []
 
-          await this.newsSentiment.forEach((item) => {
-            const date = moment.unix(item.timestamp).format("MM/DD/YYYY")
-            const dateIndex = timestamps.indexOf(date)
-
-            let dataset
+          this.forexData.forEach((item) => {
+            const date = moment.unix(item.timestamp).format("hh:mm")
 
             // checks if timestamp/date already exist in timestamps
             if (!timestamps.includes(date)) {
               timestamps.push(date)
             }
 
+            // get date index to add corresponding value for symbol
+            const dateIndex = timestamps.indexOf(date)
+
+            // checks if a dataset exists for a symbol [USDJPY, USDSGD, USDCAD, USDCHF, USDMXN]
+            let dataset = datasets.find(dataset_item => dataset_item.label === item.symbol)
+
+            // create new dataset for symbol if it doesn't exist
+            if (!dataset) {
+              dataset = {
+                label: item.symbol,
+                backgroundColor: item.symbol === 'USDJPY' ? 'rgb(255, 0, 0)' :
+                  item.symbol === 'USDSGD' ? 'rgb(0, 255, 0)' :
+                    item.symbol === 'USDCAD' ? 'rgb(0, 0, 255)' :
+                      item.symbol === 'USDCHF' ? 'rgb(255, 255, 0)' :
+                        item.symbol === 'USDMXN' ? 'rgb(255, 0, 255)' :
+                          'rgb(128, 128, 128)',
+                data: []
+              }
+            }
+
+            // add value to dataset
+            dataset['data'][dateIndex] = item.open
+
+            datasets.push(dataset)
+          })
+
+          const uniqueDatasets = new Set(datasets)
+
+          uniqueDatasets.forEach(dataset => data.push(dataset))
+
+          // sort timestamps in ascending order
+          timestamps.sort((a, b) => new Date(a) - new Date(b));
+
+          // plot data on different charts per symbol
+          data.forEach(datum => {
+            // Create a new canvas element
+            const canvasElem = document.createElement("canvas");
+
+            // Set the attributes for the canvas element
+            canvasElem.className = "w-full";
+            canvasElem.height = "400";
+
+
+            new Chart(canvasElem, {
+              type: 'line',
+              data: {
+                labels: timestamps,
+                datasets: [datum],
+              },
+              options: {
+                plugins: {
+                  title: {
+                    display: true,
+                    text: `Forex Data for ${datum.label}`
+                  }
+                },
+
+              }
+            })
+
+            parentElem.appendChild(canvasElem)
+          })
+        },
+
+        // render chart for news sentiments
+        renderNewsSentimentChart() {
+          const ctx = document.getElementById('news-sentiment-chart')
+
+          const timestamps = []
+          const datasets = [];
+          const data = []
+
+          this.newsSentiment.forEach((item) => {
+            const date = moment.unix(item.timestamp).format("MM/DD/YYYY")
+
+            // checks if timestamp/date already exist in timestamps
+            if (!timestamps.includes(date)) {
+              timestamps.push(date)
+            }
+
+            // get date index to add corresponding value for symbol
+            const dateIndex = timestamps.indexOf(date)
+
             // checks if a dataset exists for a symbol [ETH, BTC, ADA, XRP, BNB]
-            dataset = datasets.find(dataset => dataset.label === item.symbol)
+            let dataset = datasets.find(dataset_item => dataset_item.label === item.symbol)
 
             // create new dataset for symbol if it doesn't exist
             if (!dataset) {
@@ -213,7 +326,7 @@ https://cdn.jsdelivr.net/npm/moment/moment.min.js
 
             }
           })
-        }
+        },
       }
     })
   </script>
