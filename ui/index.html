@@ -101,8 +101,9 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- Vue.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+
   <!-- Custom Scripts -->
-  <script>
+  <script type="module">
     new Vue({
       el: "#app",
       data() {
@@ -182,7 +183,7 @@
         }); **/
 
         // get synthetic data and render it to page
-        const response = await fetch('/ui/synthetic-test-data.json')
+        let response = await fetch('/ui/synthetic-test-data.json')
         this.syntheticData = await response.json()
 
         this.renderSyntheticDataChart()
@@ -194,6 +195,11 @@
         renderForexDataChart() {
           // get parent element to add forex charts to
           let parentElem = document.getElementById('forex-data-charts')
+
+          // remove all charts if any to recreate them
+          while (parentElem.firstChild) {
+            parentElem.removeChild(parentElem.firstChild);
+          }
 
           const timestamps = []
           const datasets = [];
@@ -253,7 +259,6 @@
             // Set the attributes for the canvas element
             canvasElem.className = "w-full";
             canvasElem.height = "400";
-
 
             new Chart(canvasElem, {
               type: 'line',
@@ -492,7 +497,7 @@
           }
 
           new Chart(ctx, config);
-        }
+        },
       }
     })
   </script>

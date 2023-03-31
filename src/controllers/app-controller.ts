@@ -8,6 +8,7 @@ export default class AppController {
   async retrieveAndSaveForexData() {
     // symbols to get rates for
     const symbols = ['USDJPY', 'USDCAD', 'USDCHF', 'USDMXN', 'USDSGD']
+    // const symbols = ['USDINR']
 
     // create promise array to make concurrent requests
     const forexPromiseArray = symbols.map((symbol) => {
