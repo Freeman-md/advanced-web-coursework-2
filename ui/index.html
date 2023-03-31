@@ -19,33 +19,28 @@
     </div>
   </header>
 
-  <section id="charts" class="grid grid-cols-2 gap-6">
-    <div>
-      <div class="container">
-        <canvas id="news-sentiment-chart" class="w-full" height="400" width="full"></canvas>
-      </div>
+  <main class="container">
+
+    <section id="sentiment-analysis-chart" class="col-span-2">
+      <h3 class="text-3xl text-primary font-semibold text-center mb-6">News Sentiment Analysis Results</h3>
+
+        <div class="w-1/2 h-1/2 mx-auto overflow-hidden">
+          <canvas id="news-sentiment-chart" height="400"></canvas>
+        </div>
 
       <!-- <div v-else class="w-full flex items-center justify-center">
         <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
       </div> -->
-    </div>
+    </section>
 
-    <div>
-      <div class="container">
-        <canvas id="forex-data-chart" class="w-full" height="400" width="full"></canvas>
-      </div>
+  <section class="pt-6">
+    <h3 class="text-3xl text-primary font-semibold text-center mb-6">Forex Data</h3>
 
-      <!-- <div v-else class="w-full flex items-center justify-center">
-        <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
-      </div> -->
-    </div>
+    <div id="forex-charts-section" class="flex flex-col space-y-6"></div>
   </section>
 
-  <section class="container overflow-hidden space-y-6 flex flex-col items-center justify-center">
-    <h3 class="text-3xl text-primary font-semibold">Forex Data</h3>
 
-    <div id="forex-charts-section" class="grid grid-cols-2 gap-6"></div>
-  </section>
+  </main>
 
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -89,9 +84,10 @@
     new Vue({
       el: "#app",
       data: () => ({
-        connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'),
-        forexData: [],
-        newsSentiment: []
+        connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'), // websocket url
+        forexData: [], // forex data array
+        newsSentiment: [], // news sentiment array
+        syntheticData: []
       }),
 
       async created() {
@@ -219,6 +215,11 @@
 
           // plot data on different charts per symbol
           data.forEach(datum => {
+            // create div element
+            const divElement = document.createElement("div")
+
+            divElement.className = "w-2/5 h-1/2 mx-auto overflow-hidden"
+
             // Create a new canvas element
             const canvasElem = document.createElement("canvas");
 
@@ -233,6 +234,8 @@
                 labels: timestamps,
                 datasets: [datum],
               },
+              xAxisID: 'Values',
+              yAxisID: 'Dates',
               options: {
                 plugins: {
                   title: {
@@ -240,11 +243,47 @@
                     text: `Forex Data for ${datum.label}`
                   }
                 },
-
+                scales: {
+                  x: {
+                    grid: {
+                      display: false
+                    },
+                    title: {
+                      display: true,
+                      text: "Timestamps (HH:MM)",
+                      color: "red",
+                      font: {
+                        size: 16,
+                        weight: "normal"
+                      }
+                    }
+                  },
+                  y: {
+                    grid: {
+                      color: "#ccc",
+                      borderDash: [20, 4],
+                      borderColor: "black",
+                      tickColor: "black"
+                    },
+                    title: {
+                      display: true,
+                      text: "Open Price Values",
+                      color: "green",
+                      font: {
+                        size: 16,
+                        weight: "normal"
+                      }
+                    }
+                  }
+                }
               }
             })
 
-            parentElem.appendChild(canvasElem)
+            // append canvas to div to modify size
+            divElement.appendChild(canvasElem)
+
+            // append div to parent element to display on website
+            parentElem.appendChild(divElement)
           })
         },
 
@@ -323,7 +362,39 @@
                   text: 'News Sentiment Analysis Results'
                 }
               },
-
+              scales: {
+                x: {
+                  grid: {
+                    display: false
+                  },
+                  title: {
+                    display: true,
+                    text: "Timestamps (MM/DD/YYYY)",
+                    color: "red",
+                    font: {
+                      size: 16,
+                      weight: "normal"
+                    }
+                  }
+                },
+                y: {
+                  grid: {
+                    color: "#ccc",
+                    borderDash: [20, 4],
+                    borderColor: "black",
+                    tickColor: "black"
+                  },
+                  title: {
+                    display: true,
+                    text: "Sentiment Values",
+                    color: "green",
+                    font: {
+                      size: 16,
+                      weight: "normal"
+                    }
+                  }
+                }
+              }
             }
           })
         },
