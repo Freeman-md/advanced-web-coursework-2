@@ -12,35 +12,49 @@
   <title>Forexify</title>
 </head>
 
-<body id="app">
-  <header class="bg-white shadow">
-    <div class="container mx-auto flex items-center justify-center h-16">
-      <img src="/ui/images/logo.svg" alt="Forexify" class="w-40">
-    </div>
-  </header>
+<body>
+  <div id="app">
+    <header class="bg-white shadow">
+      <div class="container mx-auto flex items-center justify-center h-16">
+        <img src="/ui/images/logo.svg" alt="Forexify" class="w-40">
+      </div>
+    </header>
 
-  <main class="container">
+    <main class="container space-y-10">
 
-    <section id="sentiment-analysis-chart" class="col-span-2">
-      <h3 class="text-3xl text-primary font-semibold text-center mb-6">News Sentiment Analysis Results</h3>
+      <section id="news-sentiment-section">
+        <h3 class="text-3xl text-primary font-semibold text-center mb-6">News Sentiment Analysis Results</h3>
 
-        <div class="w-1/2 h-1/2 mx-auto overflow-hidden">
-          <canvas id="news-sentiment-chart" height="400"></canvas>
+        <div v-if="!newsSentiment" class="w-full flex items-center justify-center">
+          <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
         </div>
 
-      <!-- <div v-else class="w-full flex items-center justify-center">
-        <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
-      </div> -->
-    </section>
+        <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
+          <canvas id="news-sentiment-chart" height="400"></canvas>
+        </div>
+      </section>
 
-  <section class="pt-6">
-    <h3 class="text-3xl text-primary font-semibold text-center mb-6">Forex Data</h3>
+      <section id="synthetic-data-section">
+        <h3 class="text-3xl text-primary font-semibold text-center mb-6">Synthetic Data</h3>
 
-    <div id="forex-charts-section" class="flex flex-col space-y-6"></div>
-  </section>
+        <div v-if="!syntheticData" class="w-full flex items-center justify-center">
+          <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
+        </div>
+
+        <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
+          <canvas id="synthetic-data-chart" height="400"></canvas>
+        </div>
+      </section>
+
+      <section id="forex-data-section">
+        <h3 class="text-3xl text-primary font-semibold text-center mb-6">Forex Data</h3>
+
+        <div id="forex-data-charts" class="flex flex-col space-y-6"></div>
+      </section>
 
 
-  </main>
+    </main>
+  </div>
 
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -75,21 +89,30 @@
   <script src="
   https://cdn.jsdelivr.net/npm/moment/moment.min.js
   "></script>
+  <!-- Axios CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"
+    integrity="sha512-LUKzDoJKOLqnxGWWIBM4lzRBlxcva2ZTztO8bTcWPmDSpkErWx0bSP4pdsjNH8kiHAUPaT06UXcb+vOEZH+HpQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- ChartJS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- ChartJS Moment Adapter -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.1/chartjs-adapter-moment.min.js"
+    integrity="sha512-hVy4KxCKgnXi2ok7rlnlPma4JHXI1VPQeempoaclV1GwRHrDeaiuS1pI6DVldaj5oh6Opy2XJ2CTljQLPkaMrQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- Vue.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
   <!-- Custom Scripts -->
   <script>
     new Vue({
       el: "#app",
-      data: () => ({
-        connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'), // websocket url
-        forexData: [], // forex data array
-        newsSentiment: [], // news sentiment array
-        syntheticData: []
-      }),
-
+      data() {
+        return {
+          connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'), // websocket url
+          forexData: [], // forex data array
+          newsSentiment: [], // news sentiment array
+          syntheticData: []
+        }
+      },
       async created() {
         // add handler for the open event
         this.connection.addEventListener('open', (event) => {
@@ -158,7 +181,11 @@
           }
         }); **/
 
-        // get numerical data
+        // get synthetic data and render it to page
+        const response = await fetch('/ui/synthetic-test-data.json')
+        this.syntheticData = await response.json()
+
+        this.renderSyntheticDataChart()
       },
 
 
@@ -166,7 +193,7 @@
         // render chart for forex / numerical data
         renderForexDataChart() {
           // get parent element to add forex charts to
-          let parentElem = document.getElementById('forex-charts-section')
+          let parentElem = document.getElementById('forex-data-charts')
 
           const timestamps = []
           const datasets = [];
@@ -218,7 +245,7 @@
             // create div element
             const divElement = document.createElement("div")
 
-            divElement.className = "w-2/5 h-1/2 mx-auto overflow-hidden"
+            divElement.className = "w-1/2 h-1/2 mx-auto overflow-hidden"
 
             // Create a new canvas element
             const canvasElem = document.createElement("canvas");
@@ -364,6 +391,12 @@
               },
               scales: {
                 x: {
+                  type: 'time',
+                  time: {
+                    displayFormats: {
+                      quarter: 'MMM YYYY'
+                    }
+                  },
                   grid: {
                     display: false
                   },
@@ -398,6 +431,68 @@
             }
           })
         },
+
+        // render chart for synthetic data
+        renderSyntheticDataChart() {
+          const ctx = document.getElementById('synthetic-data-chart')
+
+          // format start time using moment
+          const startTime = moment(this.syntheticData.start, "YYYY-MM-DD HH:mm:ss");
+
+          const data = {
+            labels: this.syntheticData.target.map((item, i) => startTime.clone().add(i, "hours").format("YYYY-MM-DD HH:mm:ss")),
+            datasets: [{
+              label: "Value",
+              data: this.syntheticData.target.map((item, i) => item),
+              fill: false,
+              borderColor: "rgb(255, 0, 0)",
+              tension: 0.1
+            }]
+          };
+
+          const config = {
+            type: "line",
+            data: data,
+            options: {
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Synthetic Data for Student with ID: M00904768'
+                }
+              },
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    unit: 'hour',
+                  },
+                  title: {
+                    display: true,
+                    text: "Timestamps (HH)",
+                    color: "red",
+                    font: {
+                      size: 16,
+                      weight: "normal"
+                    }
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Values",
+                    color: "green",
+                    font: {
+                      size: 16,
+                      weight: "normal"
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          new Chart(ctx, config);
+        }
       }
     })
   </script>
