@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
   <title>Forexify</title>
 </head>
@@ -20,36 +20,80 @@
       </div>
     </header>
 
-    <main class="container space-y-10">
 
-      <section id="news-sentiment-section">
-        <h3 class="text-3xl text-primary font-semibold text-center mb-6">News Sentiment Analysis Results</h3>
+    <main>
+      <section class="relative h-[600px] overflow-hidden flex items-center justify-center">
+        <img src="/ui/images/background.jpg" alt="Background"
+          class="absolute inset-0 z-0 h-full w-full object-cover object-center">
 
-        <div v-if="!newsSentiment" class="w-full flex items-center justify-center">
-          <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
-        </div>
+        <div class="absolute inset-0 z-10 bg-black opacity-60 h-full w-full"></div>
 
-        <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
-          <canvas id="news-sentiment-chart" height="400"></canvas>
+        <canvas id="background" class="absolute inset-0 z-20 block"></canvas>
+
+        <div
+          class="relative z-30 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center text-white">
+          <h1 class="text-6xl font-bold mb-4">Welcome to Forexify</h1>
+          <p class="text-xl font-light">Your One-Stop-Shop for Forex Insights</p>
+
+          <div class="flex flex-col space-y-2 items-center justify-center pt-8">
+            <h3 class="font-light">Show data for:</h3>
+            <div class="flex space-x-4 items-center font-light">
+              <button @click.prevent="show('news-sentiment')"
+                class="font-light transition duration-200 hover:text-gray-300 text-gray-500"
+                :class="{'text-white underline': sectionOnDisplay === 'news-sentiment'}">News Sentiment</button>
+              <button @click.prevent="show('synthetic-data')"
+                class="font-light transition duration-200 hover:text-gray-300 text-gray-500"
+                :class="{'text-white underline': sectionOnDisplay === 'synthetic-data'}">Synthetic Data</button>
+              <button @click.prevent="show('forex-data')"
+                class="font-light transition duration-200 hover:text-gray-300 text-gray-500"
+                :class="{'text-white underline': sectionOnDisplay === 'forex-data'}">Forex Data</button>
+              <button @click.prevent="show('forex-data-predictions')"
+                class="font-light transition duration-200 hover:text-gray-300 text-gray-500"
+                :class="{'text-white underline': sectionOnDisplay === 'forex-data-predictions'}">Forex Data
+                Predictions</button>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="synthetic-data-section">
-        <h3 class="text-3xl text-primary font-semibold text-center mb-6">Synthetic Data</h3>
+      <section id="charts" class="container space-y-10 py-10">
 
-        <div v-if="!syntheticData" class="w-full flex items-center justify-center">
-          <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
-        </div>
+        <section id="news-sentiment-section" v-show="sectionOnDisplay === 'news-sentiment'">
+          <h3 class="text-3xl text-primary font-semibold text-center mb-6">News Sentiment Analysis Results</h3>
 
-        <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
-          <canvas id="synthetic-data-chart" height="400"></canvas>
-        </div>
-      </section>
+          <div v-if="!newsSentiment" class="w-full flex items-center justify-center">
+            <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
+          </div>
 
-      <section id="forex-data-section">
-        <h3 class="text-3xl text-primary font-semibold text-center mb-6">Forex Data</h3>
+          <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
+            <canvas id="news-sentiment-chart" height="400"></canvas>
+          </div>
+        </section>
 
-        <div id="forex-data-charts" class="flex flex-col space-y-6"></div>
+        <section id="synthetic-data-section" v-show="sectionOnDisplay === 'synthetic-data'">
+          <h3 class="text-3xl text-primary font-semibold text-center mb-6">Synthetic Data</h3>
+
+          <div v-if="!syntheticData" class="w-full flex items-center justify-center">
+            <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
+          </div>
+
+          <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
+            <canvas id="synthetic-data-chart" height="400"></canvas>
+          </div>
+        </section>
+
+        <section id="forex-data-section" v-show="sectionOnDisplay === 'forex-data'">
+          <h3 class="text-3xl text-primary font-semibold text-center mb-6">Forex Data</h3>
+
+          <div id="forex-data-charts" class="flex flex-col space-y-6"></div>
+        </section>
+
+        <section id="forex-data-predictions-section" v-show="sectionOnDisplay === 'forex-data-predictions'">
+          <h3 class="text-3xl text-primary font-semibold text-center mb-6">Forex Data Predictions</h3>
+
+          <div id="forex-data-predictions-charts" class="flex flex-col space-y-6"></div>
+        </section>
+
       </section>
 
 
@@ -79,11 +123,23 @@
             accent: '#E74C3C'
           },
           fontFamily: {
-            'sans': ['Oswald'],
+            'sans': ['Fira Sans', 'sans-serif'],
           },
         }
       }
     }
+  </script>
+  <!-- Particles JS CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particlesjs/2.2.2/particles.min.js
+  "></script>
+  <script>
+    window.onload = function () {
+      Particles.init({
+        selector: '#background',
+        color: '#FFFFFF',
+        maxParticles: 450,
+        });
+    };
   </script>
   <!-- Moment JS CDN -->
   <script src="
@@ -110,8 +166,10 @@
         return {
           connection: new WebSocket('wss://dg4cdrin6g.execute-api.us-east-1.amazonaws.com/prod'), // websocket url
           forexData: [], // forex data array
+          forexDataPredictions: [], // forex data predictions array
           newsSentiment: [], // news sentiment array
-          syntheticData: []
+          syntheticData: [], // synthetic data array
+          sectionOnDisplay: 'news-sentiment'
         }
       },
       async created() {
@@ -129,6 +187,11 @@
             action: 'getForexData'
           }))
 
+          // request latest numerical / forex data predictions
+          this.connection.send(JSON.stringify({
+            action: 'getForexDataPredictions'
+          }))
+
           console.log('Getting latest data')
         });
 
@@ -143,6 +206,11 @@
               this.forexData = new Set([...this.forexData, ...data.message])
 
               this.renderForexDataChart()
+              break
+            case 'ForexDataPredictions':
+              this.forexDataPredictions = new Set([...this.forexDataPredictions, ...data.message])
+
+              this.renderForexDataPredictionsChart()
               break
             case 'NewsSentimentData':
               this.newsSentiment = new Set([...this.newsSentiment, ...data.message])
@@ -191,6 +259,10 @@
 
 
       methods: {
+        show(section) {
+          this.sectionOnDisplay = section
+        },
+
         // render chart for forex / numerical data
         renderForexDataChart() {
           // get parent element to add forex charts to
@@ -273,6 +345,138 @@
                   title: {
                     display: true,
                     text: `Forex Data for ${datum.label}`
+                  }
+                },
+                scales: {
+                  x: {
+                    grid: {
+                      display: false
+                    },
+                    title: {
+                      display: true,
+                      text: "Timestamps (HH:MM)",
+                      color: "red",
+                      font: {
+                        size: 16,
+                        weight: "normal"
+                      }
+                    }
+                  },
+                  y: {
+                    grid: {
+                      color: "#ccc",
+                      borderDash: [20, 4],
+                      borderColor: "black",
+                      tickColor: "black"
+                    },
+                    title: {
+                      display: true,
+                      text: "Open Price Values",
+                      color: "green",
+                      font: {
+                        size: 16,
+                        weight: "normal"
+                      }
+                    }
+                  }
+                }
+              }
+            })
+
+            // append canvas to div to modify size
+            divElement.appendChild(canvasElem)
+
+            // append div to parent element to display on website
+            parentElem.appendChild(divElement)
+          })
+        },
+
+        // render chart for forex / numerical data predictions
+        renderForexDataPredictionsChart() {
+          // get parent element to add forex charts to
+          let parentElem = document.getElementById('forex-data-predictions-charts')
+
+          // remove all charts if any to recreate them
+          while (parentElem.firstChild) {
+            parentElem.removeChild(parentElem.firstChild);
+          }
+
+          const timestamps = []
+          const datasets = [];
+          const data = []
+
+          this.forexDataPredictions.forEach((item) => {
+            const date = moment.unix(item.timestamp).format("hh:mm")
+
+            // checks if timestamp/date already exist in timestamps
+            if (!timestamps.includes(date)) {
+              timestamps.push(date)
+            }
+
+            // get date index to add corresponding value for symbol
+            const dateIndex = timestamps.indexOf(date)
+
+            // checks if a dataset exists for a symbol [USDJPY, USDSGD, USDCAD, USDCHF, USDMXN]
+            let dataset = datasets.find(dataset_item => dataset_item.label === item.symbol)
+
+            // create new dataset for symbol if it doesn't exist
+            if (!dataset) {
+              dataset = {
+                label: item.symbol,
+                backgroundColor: item.symbol === 'USDJPY' ? 'rgb(255, 0, 0)' :
+                  item.symbol === 'USDSGD' ? 'rgb(0, 255, 0)' :
+                    item.symbol === 'USDCAD' ? 'rgb(0, 0, 255)' :
+                      item.symbol === 'USDCHF' ? 'rgb(255, 255, 0)' :
+                        item.symbol === 'USDMXN' ? 'rgb(255, 0, 255)' :
+                          'rgb(128, 128, 128)',
+                data: []
+              }
+            }
+
+            // add value to dataset
+            dataset['data'][dateIndex] = item.open
+
+            datasets.push(dataset)
+          })
+
+          const uniqueDatasets = new Set(datasets)
+
+          uniqueDatasets.forEach(dataset => data.push(dataset))
+
+          // sort timestamps in ascending order
+          timestamps.sort((a, b) => new Date(a) - new Date(b));
+
+          console.log(data)
+
+          return
+
+          // plot data on different charts per symbol
+          data.forEach(datum => {
+            // create div element
+            const divElement = document.createElement("div")
+
+            divElement.className = "w-1/2 h-1/2 mx-auto overflow-hidden"
+
+            // Create a new canvas element
+            const canvasElem = document.createElement("canvas");
+
+            // Set the attributes for the canvas element
+            canvasElem.className = "w-full";
+            canvasElem.height = "400";
+
+            new Chart(canvasElem, {
+              type: 'line',
+              data: {
+                labels: timestamps,
+                datasets: [datum],
+              },
+              xAxisID: 'Values',
+              yAxisID: 'Dates',
+              options: {
+                plugins: {
+                  title: {
+                    display: true,
+                    text: `Forex Data Predictions for ${datum.label}`
                   }
                 },
                 scales: {
