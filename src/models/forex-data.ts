@@ -3,6 +3,7 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { dynamodb } from "../config/aws";
 import { ObjectHelper } from '../helpers';
 
+// Forex Data Type
 export interface ForexDataType {
   symbol: string;
   timestamp: moment.Moment;
@@ -13,9 +14,11 @@ export interface ForexDataType {
   volume: number;
 }
 
+// Forex Data Model Class
 export class ForexData implements ForexDataType {
   static readonly TABLE_NAME = "ForexData";
 
+  // constructor to initialize new data
   constructor(
     public symbol: string,
     public timestamp: moment.Moment,
@@ -26,6 +29,7 @@ export class ForexData implements ForexDataType {
     public volume: number
   ) {}
 
+  // method to convert ForexData Model to JSON object
   toJSON() {
     return {
       symbol: this.symbol,
@@ -38,6 +42,7 @@ export class ForexData implements ForexDataType {
     };
   }
 
+  // method to save ForexData model to dynamodb
   async save() {
     const params: DocumentClient.PutItemInput = {
       TableName: ForexData.TABLE_NAME,
@@ -52,6 +57,7 @@ export class ForexData implements ForexDataType {
     }
   }
 
+  // method to save many ForexData models to dynamodb
   static async saveMany(data: ForexData[]) {
     const batches = ObjectHelper.chunkArray(data, 20);
 
@@ -76,6 +82,7 @@ export class ForexData implements ForexDataType {
     }
   }
 
+  // method to convert JSON object to ForexData Model
   static fromJSON(json: any): ForexData {
     return new ForexData(
       json.symbol,

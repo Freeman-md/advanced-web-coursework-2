@@ -35,6 +35,7 @@ export default class AlphaVantageService {
     return await axios.get(url);
   }
 
+  // get forex data using the intra day series function
   async getForexData(symbol: string) {
     try {
       const response = await this.getIntraDayDataSeries(symbol);
@@ -65,6 +66,7 @@ export default class AlphaVantageService {
     }
   }
 
+  // get news data using the news sentiment function
   async getNewsData(crypto: string) {
     try {
       const response = await this.getMarketSentiments(crypto);

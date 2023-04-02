@@ -3,6 +3,7 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { dynamodb } from "../config/aws";
 import { ObjectHelper } from "../helpers";
 
+// News Data Type
 export interface NewsDataType {
   title: string,
   symbol: string;
@@ -15,9 +16,12 @@ export interface NewsDataType {
   timestamp: moment.Moment;
 }
 
+// News Data Model Class
+
 export class NewsData implements NewsDataType {
   static readonly TABLE_NAME = "NewsData";
 
+  // constructor to initialize new data
   constructor(
     public title: string,
     public symbol: string,
@@ -30,6 +34,7 @@ export class NewsData implements NewsDataType {
     public timestamp: moment.Moment
   ) {}
 
+  // method to convert ForexData Model to JSON object
   toJSON() {
     return {
       title: this.title,
@@ -44,6 +49,7 @@ export class NewsData implements NewsDataType {
     };
   }
 
+  // method to save NewsData model to dynamodb
   async save() {
     const params: DocumentClient.PutItemInput = {
       TableName: NewsData.TABLE_NAME,
@@ -58,6 +64,7 @@ export class NewsData implements NewsDataType {
     }
   }
 
+  // method to save many NewsData models to dynamodb
   static async saveMany(data: NewsData[]) {
     const batches = ObjectHelper.chunkArray(data, 20);
 
@@ -82,6 +89,7 @@ export class NewsData implements NewsDataType {
     }
   }
 
+  // method to convert JSON object to ForexData Model
   static fromJSON(json: any): NewsData {
     return new NewsData(
       json.title,

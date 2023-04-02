@@ -39,7 +39,3 @@
       return JSON.parse(JSON.stringify(data))
     }
   }
-
-  export class StringHelper {}
-
-  export class NumberHelper {}

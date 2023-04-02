@@ -4,6 +4,7 @@ import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
 
 dotenv.config()
 
+// setup AWS Service Configuration Options
 const serviceConfigOptions : ServiceConfigurationOptions = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,

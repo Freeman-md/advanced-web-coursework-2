@@ -80,6 +80,18 @@
           <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
             <canvas id="synthetic-data-chart" height="400"></canvas>
           </div>
+
+          <br>
+
+          <h3 class="text-3xl text-primary font-semibold text-center mb-6">Synthetic Data Predictions</h3>
+
+          <div v-if="!syntheticDataPredictions" class="w-full flex items-center justify-center">
+            <iframe title="loading" src="https://embed.lottiefiles.com/animation/99297"></iframe>
+          </div>
+
+          <div v-else class="w-1/2 h-1/2 mx-auto overflow-hidden">
+            <canvas id="synthetic-data-predictions-chart" height="400"></canvas>
+          </div>
         </section>
 
         <section id="forex-data-section" v-show="sectionOnDisplay === 'forex-data'">
@@ -169,6 +181,7 @@
           forexDataPredictions: [], // forex data predictions array
           newsSentiment: [], // news sentiment array
           syntheticData: [], // synthetic data array
+          syntheticDataPredictions: [], // synthetic data predictions array
           sectionOnDisplay: 'news-sentiment'
         }
       },
@@ -236,7 +249,7 @@
         });
 
         // Add an event listener for the beforeunload event
-        /* window.addEventListener('beforeunload', (event) => {
+        window.addEventListener('beforeunload', (event) => {
           // Prompt the user to confirm the close
           event.preventDefault();
           event.returnValue = '';
@@ -248,13 +261,19 @@
             // Return false to prevent the browser from closing the tab immediately
             return false;
           }
-        }); **/
+        });
 
         // get synthetic data and render it to page
         let response = await fetch('/ui/synthetic-test-data.json')
         this.syntheticData = await response.json()
 
         this.renderSyntheticDataChart()
+
+        // get synthetic data predictions and render it to page
+        response = await fetch('/ui/synthetic-data-predictions.json')
+        this.syntheticDataPredictions = await response.json()
+
+        this.renderSyntheticDataPredictionsChart()
       },
 
 
@@ -406,7 +425,7 @@
           const data = []
 
           this.forexDataPredictions.forEach((item) => {
-            const date = moment.unix(item.timestamp).format("hh:mm")
+            const date = moment.unix(item.timestamp).format("mm:ss")
 
             // checks if timestamp/date already exist in timestamps
             if (!timestamps.includes(date)) {
@@ -443,12 +462,14 @@
 
           uniqueDatasets.forEach(dataset => data.push(dataset))
 
-          // sort timestamps in ascending order
-          timestamps.sort((a, b) => new Date(a) - new Date(b));
-
-          console.log(data)
-
-          return
+          // sort timestamps in format (mm:ss) in ascending order
+          timestamps.sort((a, b) => {
+            const [aMinutes, aSeconds] = a.split(':');
+            const [bMinutes, bSeconds] = b.split(':');
+            const aSecondsTotal = parseInt(aMinutes, 10) * 60 + parseInt(aSeconds, 10);
+            const bSecondsTotal = parseInt(bMinutes, 10) * 60 + parseInt(bSeconds, 10);
+            return aSecondsTotal - bSecondsTotal;
+          });
 
           // plot data on different charts per symbol
           data.forEach(datum => {
@@ -486,7 +507,7 @@
                     },
                     title: {
                       display: true,
-                      text: "Timestamps (HH:MM)",
+                      text: "Timestamps (MM:SS)",
                       color: "red",
                       font: {
                         size: 16,
@@ -667,6 +688,84 @@
                 title: {
                   display: true,
                   text: 'Synthetic Data for Student with ID: M00904768'
+                }
+              },
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    unit: 'hour',
+                  },
+                  title: {
+                    display: true,
+                    text: "Timestamps (HH)",
+                    color: "red",
+                    font: {
+                      size: 16,
+                      weight: "normal"
+                    }
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Values",
+                    color: "green",
+                    font: {
+                      size: 16,
+                      weight: "normal"
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          new Chart(ctx, config);
+        },
+
+        // render chart for synthetic data
+        renderSyntheticDataPredictionsChart() {
+          const ctx = document.getElementById('synthetic-data-predictions-chart')
+
+          // format start time using moment
+          const startTime = moment();
+
+          const data = {
+            labels: this.syntheticDataPredictions.predictions[0].mean.map((item, i) => startTime.add(i, "hour").format("YYYY-MM-DD HH:mm:ss")),
+            datasets: [
+              {
+                label: "Mean",
+                data: this.syntheticDataPredictions.predictions[0].mean.map((item, i) => item),
+                fill: false,
+                borderColor: "rgb(255, 0, 0)",
+                tension: 0.1
+              }, 
+              {
+                label: "Quantiles (0.1)",
+                data: this.syntheticDataPredictions.predictions[0].quantiles[0.1].map((item, i) => item),
+                fill: false,
+                borderColor: "rgb(0, 255, 0)",
+                tension: 0.1
+              },
+              {
+                label: "Quantiles (0.9)",
+                data: this.syntheticDataPredictions.predictions[0].quantiles[0.9].map((item, i) => item),
+                fill: false,
+                borderColor: "rgb(0, 0, 255)",
+                tension: 0.1
+              }
+            ]
+          };
+
+          const config = {
+            type: "line",
+            data: data,
+            options: {
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Synthetic Data Predictions for Student with ID: M00904768'
                 }
               },
               scales: {
