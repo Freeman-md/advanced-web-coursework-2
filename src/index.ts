@@ -5,7 +5,7 @@ try {
     const appController: AppController = new AppController()
 
     appController.retrieveAndSaveForexData()
-    // appController.retrieveAndSaveNewsData()
+    appController.retrieveAndSaveNewsData()
 } catch (error) {
     console.log(`[App Controller] An error has occurred: ${error}`);
 }

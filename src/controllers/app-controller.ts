@@ -42,7 +42,9 @@ export default class AppController {
   }
 
   async saveNewsData(newsData: Array<NewsData>) {
-    newsData = newsData.splice(-20)
+    if (newsData) {
+      newsData = newsData.splice(-20)
+    }    
 
     newsData?.map((data) => NewsData.fromJSON(data).save());
   }
